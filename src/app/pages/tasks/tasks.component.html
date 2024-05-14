@@ -1,0 +1,181 @@
+<div class="task-header">
+  <h2 class="task-title-h2"
+    *ngIf="!isEditingTitle"
+    (click)="startEditingTitle()">
+    Tasks Board: {{ boardTitle }}
+  </h2>
+
+  <igx-input-group *ngIf="isEditingTitle">
+      <input igxInput name="fullName" type="text" #boardTitleInput [value]="boardTitle" [igxFocus]="true" (blur)="onBlurIsAddingBoardSet()" (keydown.enter)="saveEditedTitle()"/>
+      <label igxLabel for="fullName" textContent="{{ boardTitle }}"></label>
+  </igx-input-group>
+
+  <button igxIconButton="flat" class="delete-button" igxRipple (click)="deleteBoard()">
+    <igx-icon fontSet="trash">delete</igx-icon>
+  </button>
+</div>
+
+<button class="view-dropdown" igxButton="flat" 
+        [igxToggleAction]="dropdown"
+        [igxDropDownItemNavigation]="dropdown">
+        View Options
+</button>
+<igx-drop-down #dropdown (selectionChanging)="onSelectBoxChanged($event)">
+    <igx-drop-down-item *ngFor="let item of items" [selected]="item.viewMode == 'Tasks'">
+        {{ item.viewMode }}
+    </igx-drop-down-item>
+</igx-drop-down>
+
+<igx-grid *ngIf="!isDashboardMode" class="grid" #grid [data]="dataSource"
+  [rowEditable]="true"
+  primaryKey="id"
+  (rowEditDone)="test($event)"
+>
+
+    <igx-column field="subject" header="Subject" [editable]="true" dataType="string"></igx-column>
+    <igx-column field="dueDate" header="Due Date" [editable]="true" [dataType]="'date'"></igx-column>
+    <igx-column field="status" header="Status" [editable]="true" dataType="number">
+      <ng-template let-dataItem>
+        {{ dataItem.status }}
+      </ng-template>
+    </igx-column>
+    <igx-column field="priority" header="Priority" [editable]="true" dataType="number"></igx-column>
+    <igx-column field="completion" header="Completion" [editable]="true" dataType="string"></igx-column>
+
+    <igx-action-strip #actionstrip>
+
+      <button title="Edit" igxIconButton="flat" (click)="startEditRow(actionstrip.context)" igxRipple >
+        <igx-icon>edit</igx-icon>
+      </button>
+      <button title="Add" igxIconButton="flat" (click)="addRow(actionstrip.context)" igxRipple >
+        <igx-icon>add</igx-icon>
+      </button>
+      <button title="Delete" igxIconButton="flat" (click)="removeRow(actionstrip.context)" igxRipple>
+          <igx-icon>delete</igx-icon>
+      </button>
+    </igx-action-strip>
+
+    <igx-action-strip #actionstrip>
+      <igx-icon>delete</igx-icon>
+    </igx-action-strip>
+
+</igx-grid>
+
+<div class="dashboard-container" *ngIf="isDashboardMode">
+  <div class="pie-charts-container">
+    <div class="chart-container">
+      <div class="legend-title">
+        <h4>Priority Pie Chart</h4>
+      </div>
+      <div class="legend">
+          <igx-item-legend
+          name="Legend"
+          #legendPieChart
+          orientation="Horizontal">
+          </igx-item-legend>
+      </div>
+      <div class="container fill">
+          <igx-pie-chart
+          height="350px"
+          width="350px"
+          radiusFactor="0.6"
+          name="chart"
+          #chart
+          legendLabelMemberPath="category"
+          labelMemberPath="name"
+          labelsPosition="BestFit"
+          valueMemberPath="value"
+          [dataSource]="priorityData"
+          [legend]="legendPieChart"
+          >
+          </igx-pie-chart>
+      </div>
+    </div>
+    
+    <div class="chart-container">
+      <div class="legend-title">
+        <h4>Status Donut Chart</h4>
+      </div>
+      <div class="legend">
+          <igx-item-legend
+          name="Legend"
+          #legendDonutChart
+          orientation="Horizontal">
+          </igx-item-legend>
+      </div>
+      <div class="container fill">
+          <igx-doughnut-chart
+          height="350px"
+          width="350px"
+          name="chart"
+          #chart
+          allowSliceExplosion="true">
+              <igx-ring-series
+              name="series"
+              #series
+              labelMemberPath="name"
+              labelsPosition="OutsideEnd"
+              labelExtent="30"
+              radiusFactor="0.6"
+              valueMemberPath="value"
+              legendLabelMemberPath="category"
+              outlines="white"
+              startAngle="30"
+              [dataSource]="statusData"
+              [legend]="legendDonutChart">
+              </igx-ring-series>
+          </igx-doughnut-chart>
+        </div>
+      </div>
+    </div>
+  
+  <div class="legend-title">
+    <h4>Due Date Bar Chart</h4>
+  </div>
+  <div class="container fill">
+    <igx-data-chart
+    height="350px"
+    width="1400px"
+    name="Chart"
+    #chart
+    isHorizontalZoomEnabled="false"
+    isVerticalZoomEnabled="false">
+        <igx-category-y-axis
+          name="yAxis"
+          #yAxis
+          label="date"
+          useEnhancedIntervalManagement="true"
+          enhancedIntervalPreferMoreCategoryLabels="true"
+          [dataSource]="dueDateData"
+          isInverted="true"
+          gap="0.5"
+          overlap="-0.1">
+        </igx-category-y-axis>
+        <igx-numeric-x-axis
+          name="xAxis"
+          #xAxis
+          labelFormat="{0}"
+          minimumValue="0">
+        </igx-numeric-x-axis>
+        <igx-category-highlight-layer
+          name="CategoryHighlightLayer"
+          #categoryHighlightLayer>
+        </igx-category-highlight-layer>
+        <igx-bar-series
+          name="BarSeries1"
+          #barSeries1
+          [xAxis]="xAxis"
+          [yAxis]="yAxis"
+          valueMemberPath="count"
+          [dataSource]="dueDateData"
+          showDefaultTooltip="true"
+          isTransitionInEnabled="true"
+          isHighlightingEnabled="true">
+        </igx-bar-series>
+        <igx-data-tool-tip-layer
+          name="Tooltips"
+          #tooltips>
+        </igx-data-tool-tip-layer>
+    </igx-data-chart>
+  </div>
+</div>

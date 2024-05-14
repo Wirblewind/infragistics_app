@@ -1,0 +1,22 @@
+<div class="content-wrap">
+    <igx-nav-drawer class="drawer" id="navigation" #drawer [isOpen]="true">
+      <ng-template igxDrawer>
+        <nav>
+          <span igxDrawerItem [isHeader]="true">Infragistics</span>
+          <span *ngFor="let item of items" igxDrawerItem [active]="item.text === selected"
+          igxRipple (click)="navigate(item)">
+            <igx-icon fontSet="material">{{ item.name }}</igx-icon>
+            <span>{{ item.text }}</span>
+          </span>
+          <span igxDrawerItem igxIconButton="flat" *ngIf="!isAddingBoard" (click)="startAddingBoard()">
+            <igx-icon fontSet="material">add</igx-icon>
+            Add Board
+          </span>
+          <igx-input-group *ngIf="isAddingBoard">
+            <input igxInput name="fullName" type="text" placeholder="Board Name" #boardInput  [igxFocus]="true" (blur)="onBlurIsAddingBoardSet()" (keydown.enter)="saveNewBoard()"/>
+            <label igxLabel for="fullName" ></label>
+        </igx-input-group>
+        </nav>
+      </ng-template>
+    </igx-nav-drawer>
+  </div>
